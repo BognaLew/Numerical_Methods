@@ -1,19 +1,30 @@
 import pandas as pan
 import pylab
+import matplotlib.dates as dates
 
 
 def getData():
-    data = pan.read_csv("dane.csv")
+    data = pan.read_csv("dane.csv", parse_dates=[0])
     data = data.head(1000)
 
     return data
+
+def plotData(data):
+    pylab.gca().xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d'))
+    pylab.gca().xaxis.set_major_locator(dates.DayLocator(interval=200))
+    pylab.plot(data["Data"], data["Otwarcie"], label="Cena otwarcia WIG20")
+    pylab.gcf().autofmt_xdate()
+    pylab.legend()
+    pylab.show()
+
+    return
 
 def calculateEMA(N, p):
     alfa = 2/(N+1)
     denominator = 0
     numerator = 0
-    for index in range(N-2, 0, -1):
-        numerator += ((1-alfa)**index)*p[N-2-index]
+    for index in range(N-1, 0, -1):
+        numerator += ((1-alfa)**index)*p[N-1-index]
         denominator += (1-alfa)**index
     e = numerator/denominator
     return e
@@ -45,19 +56,21 @@ def calculateSIGNAL(macd):
         temp = []
     return signal
 
-
-def createPlot(macd, signal):
-    pylab.plot(range(0, len(macd)), macd)
-    pylab.plot(range(0, len(signal)), signal)
-    pylab.show()
-
-    return
-
-
-def rateMACD(data):
+def MACD(data):
     macd = calculateMACD(data)
     signal = calculateSIGNAL(macd)
     for j in range(0, 9):
         macd.pop(0)
-    createPlot(macd, signal)
+
+    return macd, signal
+
+def plotMACD(macd, signal, date):
+    pylab.gca().xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d'))
+    pylab.gca().xaxis.set_major_locator(dates.DayLocator(interval=200))
+    pylab.plot(date, macd, label="Linia MACD")
+    pylab.plot(date, signal, label="Linia SIGNAL")
+    pylab.gcf().autofmt_xdate()
+    pylab.legend()
+    pylab.show()
+
     return
